@@ -3,21 +3,14 @@
 import type { HabitStore, HabitWithMarks } from './lib/habits';
 import { HabitError, streaks } from './lib/habits';
 import { escapeXml, heatmapSvg } from './lib/heatmap';
+import { summarize } from './lib/stats';
 
 const esc = escapeXml;
 
-const LOGO = `
-<svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
-  <rect x="8" y="8" width="13" height="13" rx="3" fill="var(--accent)" opacity="0.35"/>
-  <rect x="25" y="8" width="13" height="13" rx="3" fill="var(--accent)" opacity="0.6"/>
-  <rect x="42" y="8" width="13" height="13" rx="3" fill="var(--accent)"/>
-  <rect x="8" y="25" width="13" height="13" rx="3" fill="var(--accent)" opacity="0.6"/>
-  <rect x="25" y="25" width="13" height="13" rx="3" fill="var(--accent)"/>
-  <rect x="42" y="25" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.4"/>
-  <rect x="8" y="42" width="13" height="13" rx="3" fill="var(--accent)"/>
-  <rect x="25" y="42" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.4"/>
-  <rect x="42" y="42" width="13" height="13" rx="3" fill="var(--accent)" opacity="0.6"/>
-</svg>`;
+const HERO_IMAGE = 'https://picsum.photos/seed/tsuzuke-grain/1600/1000?grayscale';
+
+const CHECK_ICON =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 function todayLocal(now: Date = new Date()): string {
   const p = (n: number) => String(n).padStart(2, '0');
@@ -26,37 +19,66 @@ function todayLocal(now: Date = new Date()): string {
 
 export function mountApp(root: HTMLElement, store: HabitStore): void {
   root.innerHTML = `
-    <div class="shell">
-      <header class="masthead">
-        <div class="brand">
-          ${LOGO}
+    <header class="hero" data-reveal>
+      <div class="hero-media" aria-hidden="true">
+        <img src="${HERO_IMAGE}" alt="" width="1600" height="1000" loading="eager" decoding="async">
+      </div>
+      <div class="hero-inner">
+        <span class="kicker">習慣トラッカー</span>
+        <h1 class="display">tsu<span class="mark">zu</span>ke</h1>
+        <p class="lede">「今日やった」を一度押すだけ。続いた日が、直近一年の模様になって積み上がる。</p>
+      </div>
+    </header>
+
+    <main>
+      <section class="band" aria-labelledby="overview-heading" data-reveal>
+        <div class="band-head">
           <div>
-            <h1>tsuzuke</h1>
-            <p class="tagline">続いた日が、そのまま模様になる習慣トラッカー</p>
+            <span class="kicker">ことしの継続</span>
+            <h2 class="band-title" id="overview-heading">続いた日の地図</h2>
+          </div>
+          <div class="toolbar">
+            <button type="button" id="export" class="btn-ghost">エクスポート</button>
+            <button type="button" id="import" class="btn-ghost">インポート</button>
+            <input type="file" id="import-file" accept=".json,application/json" hidden>
           </div>
         </div>
-        <div class="masthead-actions">
-          <button type="button" id="export" class="ghost">エクスポート</button>
-          <button type="button" id="import" class="ghost">インポート</button>
-          <input type="file" id="import-file" accept=".json,application/json" hidden>
-        </div>
-      </header>
-
-      <section class="panel overview-panel" aria-labelledby="overview-heading">
-        <h2 id="overview-heading">ぜんぶの習慣</h2>
-        <div id="overview"></div>
+        <figure class="overview-figure">
+          <div id="overview"></div>
+          <figcaption class="legend">
+            <span>すくない</span>
+            <span class="legend-cells" aria-hidden="true">
+              <span></span><span class="l1"></span><span class="l2"></span><span class="l3"></span><span class="l4"></span>
+            </span>
+            <span>おおい</span>
+          </figcaption>
+        </figure>
+        <dl class="summary" id="summary"></dl>
       </section>
 
-      <section class="panel" aria-label="習慣を増やす">
-        <form id="add-form" autocomplete="off">
-          <input name="name" maxlength="30" required placeholder="続けたいこと(例: 朝の散歩)" aria-label="習慣の名前">
-          <button type="submit" class="primary">増やす</button>
+      <section class="band" aria-label="習慣を増やす" data-reveal>
+        <div class="band-head">
+          <div>
+            <span class="kicker">はじめる</span>
+            <h2 class="band-title">続けたいこと</h2>
+          </div>
+        </div>
+        <form id="add-form" class="compose-form" autocomplete="off">
+          <input name="name" maxlength="30" required placeholder="例: 朝の散歩、読書、ストレッチ" aria-label="習慣の名前">
+          <button type="submit" class="btn btn-primary">増やす</button>
         </form>
       </section>
 
-      <div id="habits"></div>
-      <div id="toast" role="status" aria-live="polite"></div>
-    </div>`;
+      <section class="band" aria-label="習慣の一覧" data-reveal>
+        <div id="habits"></div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <p>記録はこの端末の中だけに保存されます。引っ越しは右上のエクスポート／インポートで。<a href="https://github.com/miruky/tsuzuke" rel="noreferrer">ソースコード</a></p>
+    </footer>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>`;
 
   const $ = <T extends HTMLElement>(selector: string): T => {
     const node = root.querySelector<T>(selector);
@@ -75,53 +97,79 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
   }
 
   function renderOverview(habits: HabitWithMarks[]): void {
-    if (habits.length === 0) {
-      $('#overview').innerHTML =
-        '<p class="empty">まだ習慣がありません。下のフォームから1つ目を増やしてください。</p>';
-      return;
-    }
     const today = todayLocal();
     const levelOf = (date: string): number => {
+      if (habits.length === 0) return 0;
       const done = habits.filter((h) => h.marks.has(date)).length;
       if (done === 0) return 0;
       return Math.max(1, Math.ceil((done / habits.length) * 4));
     };
-    $('#overview').innerHTML = heatmapSvg(today, levelOf, {
-      label: '全習慣の達成度',
-    });
+    $('#overview').innerHTML = heatmapSvg(today, levelOf, { label: '全習慣の達成度' });
   }
 
-  function habitCard(habit: HabitWithMarks, index: number): string {
+  function renderSummary(habits: HabitWithMarks[]): void {
+    const today = todayLocal();
+    const s = summarize(habits, today);
+    const items: { value: string; unit: string; label: string }[] = [
+      { value: String(s.habitCount), unit: '個', label: '続けている習慣' },
+      { value: `${s.doneToday}/${Math.max(s.habitCount, 1)}`, unit: '', label: 'きょうの達成' },
+      { value: String(s.bestCurrentStreak), unit: '日', label: 'いちばんの連続' },
+      { value: String(s.totalChecks), unit: '日', label: 'のべ記録日数' },
+    ];
+    $('#summary').innerHTML = items
+      .map(
+        (it) => `
+        <div class="summary-item">
+          <div class="summary-value tnum">${esc(it.value)}${it.unit ? `<span class="unit">${esc(it.unit)}</span>` : ''}</div>
+          <div class="summary-label">${esc(it.label)}</div>
+        </div>`,
+      )
+      .join('');
+  }
+
+  function habitRow(habit: HabitWithMarks): string {
     const today = todayLocal();
     const { current, longest } = streaks(habit.marks, today);
     const done = habit.marks.has(today);
     return `
-      <section class="panel habit" style="--i:${Math.min(index, 8)}" aria-label="${esc(habit.name)}">
+      <article class="habit" data-reveal aria-label="${esc(habit.name)}">
         <div class="habit-head">
           <button type="button" class="check habit-${habit.colorIndex}${done ? ' done' : ''}"
             data-toggle="${esc(habit.id)}" aria-pressed="${done}"
             aria-label="${esc(habit.name)}を今日やった">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            ${CHECK_ICON}
           </button>
           <div class="habit-meta">
-            <h2>${esc(habit.name)}</h2>
-            <p>連続${current}日 / 最長${longest}日 / 合計${habit.marks.size}日</p>
+            <h3 class="habit-name">${esc(habit.name)}</h3>
+            <p class="habit-stats tnum">連続 <b>${current}</b> 日 ・ 最長 <b>${longest}</b> 日 ・ 合計 <b>${habit.marks.size}</b> 日</p>
           </div>
-          <button type="button" class="habit-remove" data-remove="${esc(habit.id)}">削除</button>
+          <div class="habit-actions">
+            <button type="button" class="icon-btn is-danger" data-remove="${esc(habit.id)}">削除</button>
+          </div>
         </div>
         <div class="habit-map" data-habit="${esc(habit.id)}">
-          ${heatmapSvg(todayLocal(), (d) => (habit.marks.has(d) ? 4 : 0), {
+          ${heatmapSvg(today, (d) => (habit.marks.has(d) ? 4 : 0), {
             label: habit.name,
             colorClass: `habit-${habit.colorIndex}`,
           })}
         </div>
-      </section>`;
+      </article>`;
+  }
+
+  function renderHabits(habits: HabitWithMarks[]): void {
+    if (habits.length === 0) {
+      $('#habits').innerHTML =
+        '<p class="empty">まだ習慣がありません。続けたいことをひとつ、上のフォームから増やしてみてください。毎日ひとつ押すだけで、ここに一年ぶんの模様が育ちます。</p>';
+      return;
+    }
+    $('#habits').innerHTML = `<div class="habit-list">${habits.map(habitRow).join('')}</div>`;
   }
 
   function render(): void {
     const habits = store.all();
     renderOverview(habits);
-    $('#habits').innerHTML = habits.map(habitCard).join('');
+    renderSummary(habits);
+    renderHabits(habits);
   }
 
   $('#add-form').addEventListener('submit', (e) => {
@@ -151,7 +199,7 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
 
     const remove = target.closest<HTMLElement>('[data-remove]');
     if (remove !== null) {
-      if (remove.dataset.armed === undefined) {
+      if (remove.dataset.armed === undefined || remove.dataset.armed === '') {
         remove.dataset.armed = '1';
         remove.textContent = '本当に削除';
         return;
