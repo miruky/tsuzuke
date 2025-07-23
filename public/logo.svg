@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="tsuzukeのロゴ">
+  <title>tsuzuke</title>
+  <style>
+    :root { --ink: #3b423d; --accent: #356a4c; }
+    @media (prefers-color-scheme: dark) {
+      :root { --ink: #ced5d0; --accent: #79b894; }
+    }
+  </style>
+  <rect x="8" y="8" width="13" height="13" rx="3" fill="var(--accent)" opacity="0.35"/>
+  <rect x="25" y="8" width="13" height="13" rx="3" fill="var(--accent)" opacity="0.6"/>
+  <rect x="42" y="8" width="13" height="13" rx="3" fill="var(--accent)"/>
+  <rect x="8" y="25" width="13" height="13" rx="3" fill="var(--accent)" opacity="0.6"/>
+  <rect x="25" y="25" width="13" height="13" rx="3" fill="var(--accent)"/>
+  <rect x="42" y="25" width="13" height="13" rx="3" fill="none" stroke="var(--ink)" stroke-width="2.5" opacity="0.5"/>
+  <rect x="8" y="42" width="13" height="13" rx="3" fill="var(--accent)"/>
+  <rect x="25" y="42" width="13" height="13" rx="3" fill="none" stroke="var(--ink)" stroke-width="2.5" opacity="0.5"/>
+  <rect x="42" y="42" width="13" height="13" rx="3" fill="var(--accent)" opacity="0.6"/>
+</svg>
