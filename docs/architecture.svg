@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 320" role="img" aria-label="tsuzukeのアーキテクチャ図">
+  <title>tsuzukeのアーキテクチャ。台帳とヒートマップ生成を分け、UIが束ねる。</title>
+  <style>
+    svg { --paper: #f5f4f1; --box: #fffefb; --ink: #27251f; --muted: #6f6b60; --line: #b5b2a6; --accent: #356a4c; }
+    @media (prefers-color-scheme: dark) {
+      svg { --paper: #171816; --box: #1f211e; --ink: #e7e5df; --muted: #9b988d; --line: #4c4f48; --accent: #79b894; }
+    }
+    text { font-family: "Hiragino Sans", "Noto Sans JP", sans-serif; fill: var(--ink); }
+    .name { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; font-weight: 600; }
+    .sub { font-size: 11px; fill: var(--muted); }
+    .label { font-size: 10px; fill: var(--muted); }
+    .box { fill: var(--box); stroke: var(--line); }
+    .ext { fill: none; stroke: var(--muted); stroke-dasharray: 5 4; }
+    .flow { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L8 4L0 8z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+
+  <rect width="780" height="320" fill="var(--paper)"/>
+  <text x="40" y="46" font-size="16" font-weight="700">tsuzuke のアーキテクチャ</text>
+
+  <rect class="box" x="40" y="110" width="180" height="130" rx="10"/>
+  <text x="130" y="156" text-anchor="middle" font-size="14" font-weight="600">習慣UI</text>
+  <text x="130" y="180" text-anchor="middle" class="name">app.ts</text>
+  <text x="130" y="204" text-anchor="middle" class="sub">今日の印・一覧・入出力</text>
+
+  <rect class="box" x="320" y="92" width="200" height="62" rx="8"/>
+  <text x="336" y="118" class="name">habits.ts</text>
+  <text x="336" y="138" class="sub">習慣と印の台帳・連続日数</text>
+
+  <rect class="box" x="320" y="196" width="200" height="62" rx="8"/>
+  <text x="336" y="222" class="name">heatmap.ts</text>
+  <text x="336" y="242" class="sub">53週グリッドのSVG生成</text>
+
+  <rect class="ext" x="600" y="92" width="140" height="62" rx="8"/>
+  <text x="670" y="118" text-anchor="middle" class="name">localStorage</text>
+  <text x="670" y="138" text-anchor="middle" class="sub">端末内に保存</text>
+
+  <path class="flow" d="M220 150 C 260 150 276 123 320 123" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <path class="flow" d="M220 200 C 260 200 276 227 320 227" marker-end="url(#arrow)"/>
+  <text x="268" y="240" text-anchor="middle" class="label">印の集合</text>
+  <path class="flow" d="M520 123 H 598" marker-end="url(#arrow)"/>
+  <text x="559" y="114" text-anchor="middle" class="label">JSON</text>
+</svg>
