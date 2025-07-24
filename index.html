@@ -13,6 +13,19 @@
     <link rel="preconnect" href="https://fastly.picsum.photos" crossorigin />
     <link rel="icon" type="image/svg+xml" href="./logo.svg" />
     <title>tsuzuke — 習慣トラッカー</title>
+    <script>
+      // 描画前に保存済みテーマを反映してちらつきを防ぐ。auto時は属性を付けない。
+      (function () {
+        try {
+          var p = localStorage.getItem('tsuzuke:theme');
+          if (p === 'light' || p === 'dark') {
+            document.documentElement.setAttribute('data-theme', p);
+          }
+        } catch (e) {
+          /* localStorageが使えなくても致命的でない */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>
