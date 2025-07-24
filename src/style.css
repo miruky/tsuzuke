@@ -8,7 +8,7 @@
   --paper-sunk: #ece8df;
   --ink: #211e18;
   --ink-soft: #4a463d;
-  --muted: #756f62;
+  --muted: #6b6557;
   --line: #ddd6c7;
   --line-soft: #e7e1d4;
   --accent: #3f6b4f;
@@ -384,6 +384,12 @@ main {
 .btn-ghost:hover {
   border-color: var(--muted);
   color: var(--ink);
+}
+
+/* ラベルが「自動/明るい/暗い」で変わっても周囲がずれないよう幅を確保 */
+#theme {
+  min-width: 7.5em;
+  text-align: center;
 }
 
 /* ツールバー(エクスポート・テーマ等) */
