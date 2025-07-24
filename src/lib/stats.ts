@@ -32,3 +32,31 @@ export function summarize(habits: HabitWithMarks[], today: string): Summary {
     activeDays: days.size,
   };
 }
+
+const DAY_MS = 86_400_000;
+
+function toUtc(date: string): number {
+  const [y, m, d] = date.split('-').map(Number);
+  return Date.UTC(y ?? 0, (m ?? 1) - 1, d ?? 1);
+}
+
+// 直近window日(todayを含む)で、1つ以上の習慣をやった実日数。
+export function activeDaysWithin(habits: HabitWithMarks[], today: string, window: number): number {
+  if (window <= 0) return 0;
+  const end = toUtc(today);
+  const start = end - (window - 1) * DAY_MS;
+  const seen = new Set<string>();
+  for (const habit of habits) {
+    for (const date of habit.marks) {
+      const ms = toUtc(date);
+      if (ms >= start && ms <= end) seen.add(date);
+    }
+  }
+  return seen.size;
+}
+
+// 直近window日の活動日率(0..100の整数パーセント)。
+export function completionRate(habits: HabitWithMarks[], today: string, window: number): number {
+  if (window <= 0) return 0;
+  return Math.round((activeDaysWithin(habits, today, window) / window) * 100);
+}
