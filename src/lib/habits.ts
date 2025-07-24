@@ -201,6 +201,27 @@ export class HabitStore {
     this.save();
   }
 
+  // 並びを1つ上/下へ動かす。端では何もしない(エラーにしない)。
+  move(id: string, direction: -1 | 1): void {
+    const i = this.habits.findIndex((h) => h.id === id);
+    if (i === -1) throw new HabitError('対象の習慣が見つかりません');
+    const j = i + direction;
+    if (j < 0 || j >= this.habits.length) return;
+    const moved = this.habits[i];
+    const swapped = this.habits[j];
+    if (moved === undefined || swapped === undefined) return;
+    this.habits[i] = swapped;
+    this.habits[j] = moved;
+    this.save();
+  }
+
+  setColor(id: string, colorIndex: number): void {
+    const habit = this.habits.find((h) => h.id === id);
+    if (habit === undefined) throw new HabitError('対象の習慣が見つかりません');
+    habit.colorIndex = ((Math.trunc(colorIndex) % 8) + 8) % 8;
+    this.save();
+  }
+
   // やった/やってないを反転し、反転後の状態を返す。
   toggle(id: string, date: string): boolean {
     if (!isValidDate(date)) throw new HabitError('日付が不正です');
