@@ -496,27 +496,103 @@ main {
   font-weight: 600;
 }
 
+.habit-ordinal {
+  flex-shrink: 0;
+  width: 1.4em;
+  text-align: right;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .habit-actions {
   display: flex;
-  gap: calc(var(--step) * 1.5);
+  gap: 2px;
   flex-shrink: 0;
+  align-items: center;
 }
 
 .icon-btn {
   color: var(--muted);
   font-size: 0.78rem;
-  padding: 4px 6px;
-  border-radius: 4px;
-  transition: color 0.2s var(--ease);
+  padding: 6px;
+  border-radius: 6px;
+  display: inline-grid;
+  place-items: center;
+  transition:
+    color 0.2s var(--ease),
+    background 0.2s var(--ease);
+}
+
+.icon-btn svg {
+  width: 17px;
+  height: 17px;
+  display: block;
 }
 
 .icon-btn:hover {
   color: var(--ink);
+  background: var(--paper-sunk);
+}
+
+.icon-btn:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.icon-btn:disabled:hover {
+  color: var(--muted);
+  background: none;
 }
 
 .icon-btn.is-danger:hover,
-.icon-btn[data-armed]:not([data-armed='']) {
+.icon-btn.is-armed {
   color: var(--danger);
+}
+
+.icon-btn.is-armed {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
+
+.swatch {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  background: var(--cell-empty);
+}
+
+.swatch:hover {
+  background: var(--cell-empty);
+  transform: scale(1.08);
+}
+
+.swatch.habit-0 { background: var(--habit-0); }
+.swatch.habit-1 { background: var(--habit-1); }
+.swatch.habit-2 { background: var(--habit-2); }
+.swatch.habit-3 { background: var(--habit-3); }
+.swatch.habit-4 { background: var(--habit-4); }
+.swatch.habit-5 { background: var(--habit-5); }
+.swatch.habit-6 { background: var(--habit-6); }
+.swatch.habit-7 { background: var(--habit-7); }
+
+.rename-input {
+  font: inherit;
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid var(--accent);
+  padding: 0 0 2px;
+  width: 100%;
+  max-width: 22em;
+}
+
+.rename-input:focus {
+  outline: none;
 }
 
 .habit-map .heatmap {
@@ -601,6 +677,21 @@ main {
 
 .page-footer a:hover {
   background-size: 100% 1px;
+}
+
+.shortcuts {
+  margin-top: calc(var(--step) * 1.5);
+  color: var(--muted);
+}
+
+.shortcuts kbd {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--paper-sunk);
+  color: var(--ink-soft);
 }
 
 /* トースト */
