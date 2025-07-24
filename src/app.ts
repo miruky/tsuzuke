@@ -4,6 +4,7 @@ import type { HabitStore, HabitWithMarks } from './lib/habits';
 import { HabitError, streaks } from './lib/habits';
 import { escapeXml, heatmapSvg } from './lib/heatmap';
 import { summarize } from './lib/stats';
+import { countUp, popStamp, revealOnScroll } from './lib/motion';
 
 const esc = escapeXml;
 
@@ -107,24 +108,33 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
     $('#overview').innerHTML = heatmapSvg(today, levelOf, { label: '全習慣の達成度' });
   }
 
-  function renderSummary(habits: HabitWithMarks[]): void {
+  function renderSummary(habits: HabitWithMarks[], animate: boolean): void {
     const today = todayLocal();
     const s = summarize(habits, today);
-    const items: { value: string; unit: string; label: string }[] = [
-      { value: String(s.habitCount), unit: '個', label: '続けている習慣' },
+    const items: { value: string; count?: number; unit: string; label: string }[] = [
+      { value: String(s.habitCount), count: s.habitCount, unit: '個', label: '続けている習慣' },
       { value: `${s.doneToday}/${Math.max(s.habitCount, 1)}`, unit: '', label: 'きょうの達成' },
-      { value: String(s.bestCurrentStreak), unit: '日', label: 'いちばんの連続' },
-      { value: String(s.totalChecks), unit: '日', label: 'のべ記録日数' },
+      { value: String(s.bestCurrentStreak), count: s.bestCurrentStreak, unit: '日', label: 'いちばんの連続' },
+      { value: String(s.totalChecks), count: s.totalChecks, unit: '日', label: 'のべ記録日数' },
     ];
     $('#summary').innerHTML = items
-      .map(
-        (it) => `
-        <div class="summary-item">
-          <div class="summary-value tnum">${esc(it.value)}${it.unit ? `<span class="unit">${esc(it.unit)}</span>` : ''}</div>
+      .map((it, i) => {
+        const num =
+          it.count !== undefined
+            ? `<span class="num" data-count="${it.count}">${animate ? 0 : it.count}</span>`
+            : esc(it.value);
+        return `
+        <div class="summary-item" data-i="${i}">
+          <div class="summary-value tnum">${num}${it.unit ? `<span class="unit">${esc(it.unit)}</span>` : ''}</div>
           <div class="summary-label">${esc(it.label)}</div>
-        </div>`,
-      )
+        </div>`;
+      })
       .join('');
+    if (animate) {
+      $('#summary')
+        .querySelectorAll<HTMLElement>('.num[data-count]')
+        .forEach((el) => countUp(el, Number(el.dataset.count ?? 0)));
+    }
   }
 
   function habitRow(habit: HabitWithMarks): string {
@@ -132,7 +142,7 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
     const { current, longest } = streaks(habit.marks, today);
     const done = habit.marks.has(today);
     return `
-      <article class="habit" data-reveal aria-label="${esc(habit.name)}">
+      <article class="habit" aria-label="${esc(habit.name)}">
         <div class="habit-head">
           <button type="button" class="check habit-${habit.colorIndex}${done ? ' done' : ''}"
             data-toggle="${esc(habit.id)}" aria-pressed="${done}"
@@ -165,10 +175,10 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
     $('#habits').innerHTML = `<div class="habit-list">${habits.map(habitRow).join('')}</div>`;
   }
 
-  function render(): void {
+  function render(animate = false): void {
     const habits = store.all();
     renderOverview(habits);
-    renderSummary(habits);
+    renderSummary(habits, animate);
     renderHabits(habits);
   }
 
@@ -194,6 +204,10 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
       const marked = store.toggle(id, todayLocal());
       toast(marked ? '今日もできました' : '今日の印を外しました');
       render();
+      if (marked) {
+        const check = root.querySelector<HTMLElement>(`[data-toggle="${CSS.escape(id)}"]`);
+        if (check !== null) popStamp(check);
+      }
       return;
     }
 
@@ -255,5 +269,6 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
     });
   });
 
-  render();
+  render(true);
+  revealOnScroll(root.querySelectorAll<HTMLElement>('[data-reveal]'));
 }
