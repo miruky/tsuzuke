@@ -124,7 +124,11 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
     const s = summarize(habits, today);
     const items: { value: string; count?: number; unit: string; label: string }[] = [
       { value: String(s.habitCount), count: s.habitCount, unit: '個', label: '続けている習慣' },
-      { value: `${s.doneToday}/${Math.max(s.habitCount, 1)}`, unit: '', label: 'きょうの達成' },
+      {
+        value: s.habitCount === 0 ? '—' : `${s.doneToday}/${s.habitCount}`,
+        unit: '',
+        label: 'きょうの達成',
+      },
       { value: String(s.bestCurrentStreak), count: s.bestCurrentStreak, unit: '日', label: 'いちばんの連続' },
       { value: String(s.totalChecks), count: s.totalChecks, unit: '日', label: 'のべ記録日数' },
     ];
@@ -165,7 +169,7 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
           ${ordinal}
           <button type="button" class="check habit-${habit.colorIndex}${done ? ' done' : ''}"
             data-toggle="${id}" aria-pressed="${done}"
-            aria-label="${name}を今日やった">
+            aria-label="${name}の今日を記録">
             ${CHECK_ICON}
           </button>
           <div class="habit-meta">
@@ -260,8 +264,15 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
 
     const move = target.closest<HTMLElement>('[data-move]');
     if (move !== null) {
-      store.move(move.dataset.move ?? '', move.dataset.dir === '1' ? 1 : -1);
+      const id = move.dataset.move ?? '';
+      const dir = move.dataset.dir === '1' ? 1 : -1;
+      store.move(id, dir);
       render();
+      // キーボード操作で並べ替えても文脈を失わないよう焦点を移動先へ戻す。
+      const idSel = CSS.escape(id);
+      const same = root.querySelector<HTMLElement>(`[data-move="${idSel}"][data-dir="${dir}"]`);
+      const fallback = root.querySelector<HTMLElement>(`[data-toggle="${idSel}"]`);
+      (same !== null && !(same as HTMLButtonElement).disabled ? same : fallback)?.focus();
       return;
     }
 
