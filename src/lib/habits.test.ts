@@ -44,6 +44,42 @@ describe('習慣の管理', () => {
     const colors = store.all().map((h) => h.colorIndex);
     expect(colors[8]).toBe(0);
   });
+
+  it('並べ替えは隣と入れ替え、端では何もしない', () => {
+    const store = new HabitStore(memoryStorage());
+    const a = store.add('A');
+    const b = store.add('B');
+    store.add('C');
+    store.move(b.id, -1);
+    expect(store.all().map((h) => h.name)).toEqual(['B', 'A', 'C']);
+    store.move(b.id, -1); // すでに先頭。変化なし
+    expect(store.all().map((h) => h.name)).toEqual(['B', 'A', 'C']);
+    expect(() => store.move('nai', 1)).toThrow(HabitError);
+    store.move(a.id, 1);
+    expect(store.all().map((h) => h.name)).toEqual(['B', 'C', 'A']);
+  });
+
+  it('色を変更でき、範囲外は8で正規化する', () => {
+    const store = new HabitStore(memoryStorage());
+    const a = store.add('A');
+    store.setColor(a.id, 11);
+    expect(store.all()[0]?.colorIndex).toBe(3);
+    store.setColor(a.id, -1);
+    expect(store.all()[0]?.colorIndex).toBe(7);
+    expect(() => store.setColor('nai', 1)).toThrow(HabitError);
+  });
+
+  it('並べ替えと色は保存されて復元する', () => {
+    const storage = memoryStorage();
+    const first = new HabitStore(storage);
+    first.add('A');
+    const b = first.add('B');
+    first.move(b.id, -1);
+    first.setColor(b.id, 4);
+    const second = new HabitStore(storage);
+    expect(second.all().map((h) => h.name)).toEqual(['B', 'A']);
+    expect(second.all()[0]?.colorIndex).toBe(4);
+  });
 });
 
 describe('印の付け外し', () => {
