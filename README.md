@@ -40,8 +40,8 @@
 | :----------- | :------------------- |
 | 言語         | TypeScript 5(strict) |
 | ヒートマップ | 自前のSVG生成        |
-| ビルド       | Vite 6               |
-| テスト       | Vitest(25テスト)     |
+| ビルド       | Vite 8               |
+| テスト       | Vitest(29テスト)     |
 | リンタ       | ESLint + Prettier    |
 | CI / CD      | GitHub Actions       |
 | 配信         | GitHub Pages         |
@@ -50,6 +50,7 @@
 
 - `src/lib/habits.ts` — 習慣と印の台帳。連続日数・検証・エクスポート/インポート
 - `src/lib/heatmap.ts` — 53週グリッドのSVG生成
+- `src/lib/stats.ts` — 一覧上の要約値(達成数・最長連続・のべ日数)を導く純粋関数
 - `src/app.ts` — チェックボタン・ヒートマップ・追加削除のUI
 - `docs/architecture.svg` — アーキテクチャ図
 
@@ -57,7 +58,7 @@
 
 ### 前提条件
 
-- Node.js 20 以上
+- Node.js 22 以上
 
 ### セットアップ
 
