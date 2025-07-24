@@ -57,7 +57,11 @@ export function heatmapCells(today: string, levelOf: (date: string) => number): 
 export function heatmapSvg(
   today: string,
   levelOf: (date: string) => number,
-  opts: { label?: string; colorClass?: string } = {},
+  opts: {
+    label?: string;
+    colorClass?: string;
+    titleOf?: (date: string, level: number) => string;
+  } = {},
 ): string {
   const weeks = heatmapCells(today, levelOf);
   const width = LEFT + weeks.length * (CELL + GAP);
@@ -86,13 +90,19 @@ export function heatmapSvg(
   const cells = weeks
     .map((week, w) =>
       week
-        .map(
-          (cell, d) =>
+        .map((cell, d) => {
+          const isToday = cell.date === today;
+          const classes =
+            `hm-cell level-${cell.level}` +
+            (isToday ? ' hm-today' : '') +
+            (opts.colorClass ? ' ' + opts.colorClass : '');
+          const title = opts.titleOf ? opts.titleOf(cell.date, cell.level) : cell.date;
+          return (
             `<rect x="${LEFT + w * (CELL + GAP)}" y="${TOP + d * (CELL + GAP)}" ` +
-            `width="${CELL}" height="${CELL}" rx="3" ` +
-            `class="hm-cell level-${cell.level}${opts.colorClass ? ' ' + opts.colorClass : ''}" ` +
-            `data-date="${cell.date}"><title>${cell.date}</title></rect>`,
-        )
+            `width="${CELL}" height="${CELL}" rx="3" class="${classes}" ` +
+            `data-date="${cell.date}"><title>${escapeXml(title)}</title></rect>`
+          );
+        })
         .join(''),
     )
     .join('');
