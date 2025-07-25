@@ -3,7 +3,7 @@
 import type { HabitStore, HabitWithMarks } from './lib/habits';
 import { HabitError, streaks } from './lib/habits';
 import { escapeXml, heatmapSvg } from './lib/heatmap';
-import { completionRate, summarize } from './lib/stats';
+import { completionRate, milestone, summarize } from './lib/stats';
 import { countUp, popStamp, revealOnScroll } from './lib/motion';
 import { applyTheme, labelFor, nextPref, readPref, writePref, type ThemePref } from './lib/theme';
 
@@ -162,9 +162,27 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
     }
   }
 
+  // 今日の印を付け外しし、節目に達したときは祝いのメッセージを出す。
+  function toggleToday(id: string): void {
+    const marked = store.toggle(id, todayLocal());
+    render();
+    if (!marked) {
+      toast('今日の印を外しました');
+      return;
+    }
+    const habit = store.all().find((h) => h.id === id);
+    const name = habit?.name ?? '';
+    const current = habit ? streaks(habit.marks, todayLocal()).current : 0;
+    const justReached = milestone(current) === current && current > 0;
+    toast(justReached ? `「${name}」${current}日連続を達成しました` : '今日もできました');
+    const check = root.querySelector<HTMLElement>(`[data-toggle="${CSS.escape(id)}"]`);
+    if (check !== null) popStamp(check);
+  }
+
   function habitRow(habit: HabitWithMarks, index: number, total: number): string {
     const today = todayLocal();
     const { current, longest } = streaks(habit.marks, today);
+    const reached = milestone(current);
     const done = habit.marks.has(today);
     const id = esc(habit.id);
     const name = esc(habit.name);
@@ -185,6 +203,7 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
           <div class="habit-meta">
             ${nameBlock}
             <p class="habit-stats tnum">連続 <b>${current}</b> 日 ・ 最長 <b>${longest}</b> 日 ・ 合計 <b>${habit.marks.size}</b> 日</p>
+            ${reached !== null ? `<p class="milestone tnum">${reached}日連続を達成</p>` : ''}
           </div>
           <div class="habit-actions">
             <button type="button" class="icon-btn" data-move="${id}" data-dir="-1" aria-label="${name}を上へ" title="上へ"${index === 0 ? ' disabled' : ''}>${ICON_UP}</button>
@@ -262,14 +281,7 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
 
     const toggle = target.closest<HTMLElement>('[data-toggle]');
     if (toggle !== null) {
-      const id = toggle.dataset.toggle ?? '';
-      const marked = store.toggle(id, todayLocal());
-      toast(marked ? '今日もできました' : '今日の印を外しました');
-      render();
-      if (marked) {
-        const check = root.querySelector<HTMLElement>(`[data-toggle="${CSS.escape(id)}"]`);
-        if (check !== null) popStamp(check);
-      }
+      toggleToday(toggle.dataset.toggle ?? '');
       return;
     }
 
@@ -385,13 +397,7 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
       const habit = store.all()[idx];
       if (habit === undefined) return;
       e.preventDefault();
-      const marked = store.toggle(habit.id, todayLocal());
-      toast(marked ? `「${habit.name}」今日もできました` : `「${habit.name}」今日の印を外しました`);
-      render();
-      if (marked) {
-        const check = root.querySelector<HTMLElement>(`[data-toggle="${CSS.escape(habit.id)}"]`);
-        if (check !== null) popStamp(check);
-      }
+      toggleToday(habit.id);
     }
   });
 

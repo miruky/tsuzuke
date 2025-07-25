@@ -58,4 +58,18 @@ describe('heatmapSvg', () => {
     const svg = heatmapSvg('2026-06-13', () => 0, { label: '読書' });
     expect(svg).toContain('読書(直近1年)');
   });
+
+  it('今日のセルにhm-todayが付く', () => {
+    const svg = heatmapSvg('2026-06-13', () => 0);
+    const matches = svg.match(/hm-today/g) ?? [];
+    expect(matches).toHaveLength(1);
+    expect(svg).toContain('data-date="2026-06-13"');
+  });
+
+  it('titleOfでツールチップ文言を差し替えられる', () => {
+    const svg = heatmapSvg('2026-06-13', () => 1, {
+      titleOf: (d) => `${d}・記録あり`,
+    });
+    expect(svg).toContain('<title>2026-06-13・記録あり</title>');
+  });
 });
