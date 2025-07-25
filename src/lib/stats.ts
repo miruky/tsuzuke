@@ -60,3 +60,14 @@ export function completionRate(habits: HabitWithMarks[], today: string, window: 
   if (window <= 0) return 0;
   return Math.round((activeDaysWithin(habits, today, window) / window) * 100);
 }
+
+// 継続の節目。到達済みのうち最大のものを返す(未到達はnull)。
+export const MILESTONES: number[] = [7, 30, 100, 365];
+
+export function milestone(streak: number): number | null {
+  let reached: number | null = null;
+  for (const m of MILESTONES) {
+    if (streak >= m) reached = m;
+  }
+  return reached;
+}
