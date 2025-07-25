@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { HabitWithMarks } from './habits';
-import { activeDaysWithin, completionRate, summarize } from './stats';
+import { activeDaysWithin, completionRate, milestone, summarize } from './stats';
 
 function habit(name: string, marks: string[], colorIndex = 0): HabitWithMarks {
   return { id: name, name, colorIndex, createdAt: '', marks: new Set(marks) };
@@ -67,5 +67,20 @@ describe('completionRate', () => {
   it('全日活動なら100%', () => {
     const habits = [habit('a', ['2026-06-13', '2026-06-12', '2026-06-11'])];
     expect(completionRate(habits, '2026-06-13', 3)).toBe(100);
+  });
+});
+
+describe('milestone', () => {
+  it('到達前はnull', () => {
+    expect(milestone(0)).toBeNull();
+    expect(milestone(6)).toBeNull();
+  });
+
+  it('到達済みのうち最大の節目を返す', () => {
+    expect(milestone(7)).toBe(7);
+    expect(milestone(29)).toBe(7);
+    expect(milestone(30)).toBe(30);
+    expect(milestone(120)).toBe(100);
+    expect(milestone(400)).toBe(365);
   });
 });

@@ -502,6 +502,25 @@ main {
   font-weight: 600;
 }
 
+/* 継続の節目。控えめなアクセントの小さな印で、賑やかしの箱は作らない */
+.milestone {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--accent-ink);
+}
+
+.milestone::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 .habit-ordinal {
   flex-shrink: 0;
   width: 1.4em;
