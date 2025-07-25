@@ -640,6 +640,13 @@ main {
   fill: var(--accent);
 }
 
+/* 今日のセルは細い輪郭でそっと示す(色は変えない) */
+.hm-cell.hm-today {
+  stroke: var(--ink-soft);
+  stroke-width: 1.4px;
+  paint-order: stroke;
+}
+
 .hm-cell.level-4.habit-0 { fill: var(--habit-0); }
 .hm-cell.level-4.habit-1 { fill: var(--habit-1); }
 .hm-cell.level-4.habit-2 { fill: var(--habit-2); }
@@ -763,5 +770,27 @@ main {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* 印刷: 記録の地図を紙に残せるよう、操作系を畳んで地図と数値だけ残す */
+@media print {
+  .toolbar,
+  .compose-form,
+  .habit-actions,
+  .toast,
+  .shortcuts,
+  .hero-media {
+    display: none !important;
+  }
+  .hm-cell {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .habit {
+    break-inside: avoid;
+  }
+  .hero-inner {
+    padding-top: clamp(24px, 6vw, 48px);
   }
 }
