@@ -3,7 +3,7 @@
 import type { HabitStore, HabitWithMarks } from './lib/habits';
 import { HabitError, streaks } from './lib/habits';
 import { escapeXml, heatmapSvg } from './lib/heatmap';
-import { summarize } from './lib/stats';
+import { completionRate, summarize } from './lib/stats';
 import { countUp, popStamp, revealOnScroll } from './lib/motion';
 import { applyTheme, labelFor, nextPref, readPref, writePref, type ThemePref } from './lib/theme';
 
@@ -110,18 +110,22 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
 
   function renderOverview(habits: HabitWithMarks[]): void {
     const today = todayLocal();
+    const doneOn = (date: string): number => habits.filter((h) => h.marks.has(date)).length;
     const levelOf = (date: string): number => {
       if (habits.length === 0) return 0;
-      const done = habits.filter((h) => h.marks.has(date)).length;
+      const done = doneOn(date);
       if (done === 0) return 0;
       return Math.max(1, Math.ceil((done / habits.length) * 4));
     };
-    $('#overview').innerHTML = heatmapSvg(today, levelOf, { label: '全習慣の達成度' });
+    const titleOf = (date: string): string =>
+      habits.length === 0 ? date : `${date} ・ ${doneOn(date)}/${habits.length} 達成`;
+    $('#overview').innerHTML = heatmapSvg(today, levelOf, { label: '全習慣の達成度', titleOf });
   }
 
   function renderSummary(habits: HabitWithMarks[], animate: boolean): void {
     const today = todayLocal();
     const s = summarize(habits, today);
+    const rate = habits.length === 0 ? 0 : completionRate(habits, today, 30);
     const items: { value: string; count?: number; unit: string; label: string }[] = [
       { value: String(s.habitCount), count: s.habitCount, unit: '個', label: '続けている習慣' },
       {
@@ -131,6 +135,12 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
       },
       { value: String(s.bestCurrentStreak), count: s.bestCurrentStreak, unit: '日', label: 'いちばんの連続' },
       { value: String(s.totalChecks), count: s.totalChecks, unit: '日', label: 'のべ記録日数' },
+      {
+        value: habits.length === 0 ? '—' : `${rate}`,
+        count: habits.length === 0 ? undefined : rate,
+        unit: habits.length === 0 ? '' : '%',
+        label: '直近30日の活動',
+      },
     ];
     $('#summary').innerHTML = items
       .map((it, i) => {
@@ -188,6 +198,7 @@ export function mountApp(root: HTMLElement, store: HabitStore): void {
           ${heatmapSvg(today, (d) => (habit.marks.has(d) ? 4 : 0), {
             label: habit.name,
             colorClass: `habit-${habit.colorIndex}`,
+            titleOf: (d) => (habit.marks.has(d) ? `${d} ・ 記録あり` : d),
           })}
         </div>
       </article>`;
